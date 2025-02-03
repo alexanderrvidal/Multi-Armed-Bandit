@@ -12,6 +12,7 @@ class ABCTestBandit:
 
 class ThompsonABCTest:
     # known to perform best in practice for A/B testing
+    # intuition: the number of pulls for a given lever should match its actual probability of being the optimal lever.
     def __init__(self, n_variants):
         self.n_variants = n_variants
         # beta distribution parameters for each variant : Uniform prior (alpha=1, beta=1)
@@ -39,11 +40,15 @@ class ThompsonABCTest:
         self.counts[variant] += 1
 
 class EpsilonGreedy:
+    # an algorithm for continuously balancing exploration vs. exploitation
+    # epsilon: probability of exploration
     def __init__(self, n_variants, epsilon):
         self.n_variants = n_variants
         self.epsilon = epsilon
         self.counts = np.zeros(n_variants)
         self.conversions = np.zeros(n_variants)
+        self.q_values = np.zeros(n_variants)
+        self.alpha = 1  # for updating conversion rates
 
     def choose_variant(self):
         # Randomly choose between exploration and exploitation
@@ -56,7 +61,6 @@ class EpsilonGreedy:
     def update(self, variant, converted):
         self.counts[variant] += 1
         self.conversions[variant] += converted  
-
 
 class TraditionalABTest:
     def __init__(self, n_variants):
@@ -106,6 +110,7 @@ for visitor in range(visitors):
     converted = abc_bandit.display_variant(variant)
     epsilon_strategy.update(variant, converted)
     epsilon_allocations[visitor, variant] = 1
+
     if visitor % print_freq == 0:
         print('epsilon strategy:', 'visitor:', visitor, 'variant', variant, 'converted', converted)
     else:
